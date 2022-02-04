@@ -42,5 +42,5 @@ void Demo::loop() {
     mtl.setMVP(model, view, projection);
     mtl.setCameraPositon(global::camera.Position);
 
-    demo::model.Draw();
+    demo::model.Draw(mtl);
 }

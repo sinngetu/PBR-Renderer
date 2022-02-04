@@ -82,7 +82,9 @@ class Model {
 public:
     Model(const char *path) {loadModel(path);}
 
-    void Draw() {
+    void Draw(Material material) {
+        material.use();
+
         for(unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw();
     }
