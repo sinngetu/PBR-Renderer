@@ -24,7 +24,6 @@ using namespace demo;
 Demo::Demo() {
     glEnable(GL_DEPTH_TEST);
 
-    mtl.use();
     mtl.setLight(lightDirection, lightColor);
 }
 

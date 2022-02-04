@@ -22,16 +22,19 @@ using namespace glm;
 Default::Default():Material(_defaultProps::shader) {};
 
 void Default::setMVP(mat4 M, mat4 V, mat4 P) {
+    use();
     shader->setMat4("model", M);
     shader->setMat4("view", V);
     shader->setMat4("projection", P);
 }
 
 void Default::setCameraPositon(vec3 pos) {
+    use();
     shader->setVec3("viewPosition", pos);
 }
 
 void Default::setLight(vec3 direction, vec3 color) {
+    use();
     shader->setVec3("light.direction", direction);
     shader->setVec3("light.color", color);
 }

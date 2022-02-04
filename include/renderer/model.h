@@ -25,12 +25,6 @@ public:
         this->indices  = indices;
     }
 
-    ~Mesh() {
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
-    }
-
     void Draw() {
         if (!inited)
             setupMesh();
