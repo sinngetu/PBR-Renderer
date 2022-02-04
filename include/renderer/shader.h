@@ -124,6 +124,8 @@ public:
         this->geometryPath = geometryPath;
     };
 
+    ~Shader() { glDeleteProgram(ID); }
+
     void use() {
         if (!inited) init();
         glUseProgram(ID);
