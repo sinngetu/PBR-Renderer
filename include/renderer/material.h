@@ -13,12 +13,7 @@ protected:
     }
 
 public:
-    Material(Shader &shader) {
-        this->shader = &shader;
-        setPropsFunc(nullptr);
-    }
-
-    Material(Shader &shader, void (*func)(Shader *shader)) {
+    Material(Shader &shader, void (*func)(Shader *shader) = nullptr) {
         this->shader = &shader;
         setPropsFunc(func);
     }

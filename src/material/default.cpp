@@ -13,17 +13,13 @@ namespace material {
 
         unsigned int i = 0;
         Shader shader(vert.c_str(), frag.c_str());
-
-        void setProps(Shader *shader) {
-            
-        };
     }
 };
 
 using namespace material;
 using namespace glm;
 
-Default::Default():Material(_defaultProps::shader, _defaultProps::setProps) {};
+Default::Default():Material(_defaultProps::shader) {};
 
 void Default::setMVP(mat4 M, mat4 V, mat4 P) {
     shader->setMat4("model", M);
