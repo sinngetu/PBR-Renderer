@@ -1,45 +1,54 @@
-#include <glad/glad.h>
-#include <iostream>
-
 #include <renderer/model.h>
 #include <renderer/global.h>
 
 #include "scene.h"
+
 #include "../material/material.h"
+#include "../util/util.h"
 
 using namespace glm;
 
-namespace demo {
+namespace scene::demo {
     fs::path modelPath = global::resolvePath("assets/decoretive.obj");
 
     Model model(modelPath.c_str());
     material::Default mtl;
+    util::Debug debug;
 
-    vec3 lightDirection(-3.f, -3.0f, 1.0f);
+    vec3 lightDirection(-2.0f, 4.0f, -1.0f);
     vec3 lightColor(0.95f);
+
+    std::vector<Model> models;
 }
 
-using namespace demo;
+using namespace scene::demo;
 
-Demo::Demo() {
-    glEnable(GL_DEPTH_TEST);
+scene::Demo::Demo() {
+    mat4 M = mat4(1.0f);
+    M = translate(M, vec3(0.0f, -1.0f, 0.0f));
 
+    model.setM(M);
+    models.push_back(model);
+
+    mtl.init();
     mtl.setLight(lightDirection, lightColor);
+    mtl.setShadowPorps(lightDirection, vec3(0.0f, 1.0f, 0.0f), 2.5f);
 }
 
-void Demo::loop() {
+void scene::Demo::loop() {
     glClearColor(0.231f, 0.345f, 0.459f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
-    mat4 model = mat4(1.0f);
     mat4 view = global::camera.GetViewMatrix();
     mat4 projection = perspective(radians(global::camera.Zoom), (float)global::SCREEN_WIDTH / (float)global::SCREEN_HEIGHT, 0.1f, 100.0f);
 
-    model = translate(model, vec3(0.f, 0.f, 0.f));
-    model = scale(model, vec3(0.01f));
+    mtl.shadowMapping(models);
+    mtl.setVP(view, projection);
+    mtl.setViewPositon(global::camera.Position);
+    mtl.setShadow();
 
-    mtl.setMVP(model, view, projection);
-    mtl.setCameraPositon(global::camera.Position);
+    scene::demo::model.Draw(mtl);
 
-    demo::model.Draw(mtl);
+    // debug.render(mtl.getShadowMap());
 }

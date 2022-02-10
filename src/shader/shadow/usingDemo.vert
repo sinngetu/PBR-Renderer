@@ -20,14 +20,14 @@ uniform mat4 WorldToLight;
 vec3 TransformObjectToWorldNormal(vec3 normalOS);
 
 void main() {
-    o.positionWS = (model * vec4(positionOS, 1.f)).xyz;
-    o.positionLS = WorldToLight * vec4(o.positionWS, 1.f);
+    o.positionWS = (model * vec4(positionOS, 1.0)).xyz;
+    o.positionLS = WorldToLight * vec4(o.positionWS, 1.0);
     o.normalWS = TransformObjectToWorldNormal(normalOS);
     o.uv = texcoord;
 
-    gl_Position = projection * view * vec4(o.positionWS, 1.f);
+    gl_Position = projection * view * vec4(o.positionWS, 1.0);
 }
 
 vec3 TransformObjectToWorldNormal(vec3 normalOS) {
-    return transpose(inverse(mat3(model))) * normalOS;
+    return mat3(transpose(inverse(model))) * normalOS;
 }

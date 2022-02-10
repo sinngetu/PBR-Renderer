@@ -15,8 +15,7 @@ void loop(Scene *scene);
 int main() {
     if (!init()) return -1;
 
-    Scene *scene = new Demo();
-    loop(scene);
+    loop(new scene::Demo());
 
     glfwTerminate();
     return 0;

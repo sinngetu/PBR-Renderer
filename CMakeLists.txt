@@ -11,9 +11,18 @@ link_libraries(${Renderer_SOURCE_DIR}/lib/libglfw.3.dylib)
 link_libraries(${Renderer_SOURCE_DIR}/lib/libassimp.5.dylib)
 
 add_executable (Renderer
+# entry
     src/main.cpp
     src/global.cpp
+
+# utils
+    src/util/debug.cpp
+
+# materials
     src/material/default.cpp
+    src/material/shadow.cpp
+
+# scenes
     src/scene/demo.cpp
 )
 

@@ -74,16 +74,34 @@ private:
 
 class Model {
 public:
-    Model(const char *path) {loadModel(path);}
+    Model(const char *path, glm::mat4 modelMatrix = glm::mat4(1.0f)) {
+        loadModel(path);
+        M = modelMatrix;
+    }
 
-    void Draw(Material material) {
+    void Draw() {
+        for(unsigned int i = 0; i < meshes.size(); i++)
+            meshes[i].Draw();
+    }
+
+    void Draw(Material &material) {
         material.use();
+        material.setM(M);
 
         for(unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw();
     }
 
+    void setM(glm::mat4 modelMatrix) {
+        M = modelMatrix;
+    }
+
+    glm::mat4 getM() {
+        return M;
+    }
+
 private:
+    glm::mat4 M;
     std::vector<Mesh> meshes;
 
     void loadModel(const char *pathChar) {
