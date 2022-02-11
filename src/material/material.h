@@ -5,39 +5,11 @@
 using namespace glm;
 
 namespace material {
-class Shadow {
-private:
-    GLuint depthMap, depthMapFBO;
-    bool inited = false;
-    Shader shadowShader;
-    unsigned int textureIndex;
-    vec3 direction;
-    vec3 offset;
-    GLfloat halfWidth;
-    GLfloat near;
-    GLfloat far;
-
-    void init();
-
-protected:
-    mat4 WorldToLight;
-    void setShadowTextureIndex(unsigned int i);
-
-public:
-    Shadow();
-    void setShadowPorps(vec3 direction, vec3 offset = vec3(0.0f), GLfloat halfWidth = 10.0f, GLfloat near = 0.1f, GLfloat far = 100.0f);
-    void shadowMapping(std::vector<Model> models);
-    void setShadowMap();
-    GLuint getShadowMap();
-    mat4 getWorldToLight();
-};
-
-class Default: public Material, public Shadow {
+class Default: public Material {
 public:
     Default();
-    void init();
     void setLight(vec3 direction, vec3 color);
-    void setShadow();
+    void setShadow(mat4 WorldToLight);
 };
 
 class Debug: public Material {

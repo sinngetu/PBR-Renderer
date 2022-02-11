@@ -18,20 +18,14 @@ using namespace glm;
 
 Default::Default():Material(material::_default::shader) {};
 
-void Default::init() {
-    use();
-    shader->setInt("shadowMap", 0);
-    setShadowTextureIndex(0);
-}
-
 void Default::setLight(vec3 direction, vec3 color) {
     use();
     shader->setVec3("light.direction", direction);
     shader->setVec3("light.color", color);
 }
 
-void Default::setShadow() {
+void Default::setShadow(mat4 WorldToLight) {
     use();
+    shader->setInt("shadowMap", 0);
     shader->setMat4("WorldToLight", WorldToLight);
-    setShadowMap();
 }

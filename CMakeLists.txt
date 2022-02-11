@@ -20,7 +20,6 @@ add_executable (Renderer
 
 # materials
     src/material/default.cpp
-    src/material/shadow.cpp
 
 # scenes
     src/scene/demo.cpp

@@ -1,5 +1,6 @@
-#include <renderer/model.h>
 #include <renderer/global.h>
+#include <renderer/model.h>
+#include <renderer/shadow.h>
 
 #include "scene.h"
 
@@ -12,6 +13,7 @@ namespace scene::demo {
     fs::path modelPath = global::resolvePath("assets/decoretive.obj");
 
     Model model(modelPath.c_str());
+    Shadow shadow;
     material::Default mtl;
     util::Debug debug;
 
@@ -30,9 +32,8 @@ scene::Demo::Demo() {
     model.setM(M);
     models.push_back(model);
 
-    mtl.init();
     mtl.setLight(lightDirection, lightColor);
-    mtl.setShadowPorps(lightDirection, vec3(0.0f, 1.0f, 0.0f), 2.5f);
+    shadow.setPorps(lightDirection, vec3(0.0f, 1.0f, 0.0f), 2.5f);
 }
 
 void scene::Demo::loop() {
@@ -43,12 +44,14 @@ void scene::Demo::loop() {
     mat4 view = global::camera.GetViewMatrix();
     mat4 projection = perspective(radians(global::camera.Zoom), (float)global::SCREEN_WIDTH / (float)global::SCREEN_HEIGHT, 0.1f, 100.0f);
 
-    mtl.shadowMapping(models);
+    shadow.shadowMapping(models);
+    shadow.setMap();
+
     mtl.setVP(view, projection);
     mtl.setViewPositon(global::camera.Position);
-    mtl.setShadow();
+    mtl.setShadow(shadow.getWorldToLight());
 
     scene::demo::model.Draw(mtl);
 
-    // debug.render(mtl.getShadowMap());
+    // debug.render(shadow.getMap());
 }
