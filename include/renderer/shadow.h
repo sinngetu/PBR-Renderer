@@ -9,8 +9,7 @@
 class Shadow {
 private:
     GLuint depthMap, depthMapFBO;
-    bool inited = false;
-    GLuint shader;
+    GLuint shader = 0;
     unsigned int textureIndex;
     glm::mat4 WorldToLight;
     glm::vec3 direction;
@@ -18,17 +17,6 @@ private:
     GLfloat halfWidth;
     GLfloat near;
     GLfloat far;
-
-    void checkError(unsigned int *shader, const char *type) {
-        GLint status;
-        char infoLog[512];
-        glGetShaderiv(*shader, GL_COMPILE_STATUS, &status);
-
-        if (!status) {
-            glGetShaderInfoLog(*shader, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::" << type << "::COMPILATION_FAILED\n" << infoLog << std::endl;
-        }
-    }
 
     void init() {
         const char *vertCode =
@@ -51,12 +39,10 @@ private:
         GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertex, 1, &vertCode, NULL);
         glCompileShader(vertex);
-        checkError(&vertex, "VERTEX");
 
         GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragment, 1, &fragCode, NULL);
         glCompileShader(fragment);
-        checkError(&vertex, "FRAGMENT");
 
         // create shader program
         shader = glCreateProgram();
@@ -97,10 +83,7 @@ public:
     ~Shadow() { glDeleteProgram(shader); }
 
     void setPorps(glm::vec3 direction, glm::vec3 offset = glm::vec3(0.0f), GLfloat halfWidth = 10.0f, GLfloat near = 0.1f, GLfloat far = 100.0f) {
-        if(!inited) {
-            init();
-            inited = true;
-        }
+        if(shader == 0) init();
 
         this->direction = direction;
         this->offset = offset;

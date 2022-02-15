@@ -4,10 +4,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <iostream>
 #include <filesystem>
 
-#include <stb_image.h>
 #include <renderer/camera.h>
 
 namespace fs = std::filesystem;
@@ -38,6 +36,7 @@ extern void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 extern std::filesystem::path resolvePath(const char *path);
 extern bool init();
 extern void loadTexture(char const* path, unsigned int* id);
+extern void loadCubemap(const char *cubemap, unsigned int* id);
 extern void loadCubemap(std::vector<std::string> faces, unsigned int* id);
 };
 

@@ -1,6 +1,7 @@
 #include <renderer/global.h>
 #include <renderer/model.h>
 #include <renderer/shadow.h>
+#include <renderer/skybox.h>
 
 #include "scene.h"
 
@@ -10,10 +11,12 @@
 using namespace glm;
 
 namespace scene::demo {
+    fs::path skyboxPath = global::resolvePath("assets/skybox/3.png");
     fs::path modelPath = global::resolvePath("assets/decoretive.obj");
 
     Model model(modelPath.c_str());
     Shadow shadow;
+    Skybox skybox(skyboxPath.c_str());
     material::Default mtl;
     util::Debug debug;
 
@@ -52,6 +55,7 @@ void scene::Demo::loop() {
     mtl.setShadow(shadow.getWorldToLight());
 
     scene::demo::model.Draw(mtl);
+    skybox.Draw(view, projection);
 
     // debug.render(shadow.getMap());
 }
