@@ -38,6 +38,7 @@ extern bool init();
 extern void loadTexture(char const* path, unsigned int* id);
 extern void loadCubemap(const char *cubemap, unsigned int* id);
 extern void loadCubemap(std::vector<std::string> faces, unsigned int* id);
+extern void drawCube();
 };
 
 #endif

@@ -4,63 +4,12 @@
 
 class Skybox {
 private:
-    GLuint VBO, VAO, shader, cubemap = 0;
+    GLuint shader = 0, cubemap = 0;
     const char *path;
 
     void init() {
-        global::loadCubemap(path, &cubemap);
-
-        float vertices[] = {
-            -1.0f,  1.0f, -1.0f,
-            -1.0f, -1.0f, -1.0f,
-             1.0f, -1.0f, -1.0f,
-             1.0f, -1.0f, -1.0f,
-             1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-
-            -1.0f, -1.0f,  1.0f,
-            -1.0f, -1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f,  1.0f,
-            -1.0f, -1.0f,  1.0f,
-
-            1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-
-            -1.0f, -1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-             1.0f, -1.0f,  1.0f,
-            -1.0f, -1.0f,  1.0f,
-
-            -1.0f,  1.0f, -1.0f,
-             1.0f,  1.0f, -1.0f,
-             1.0f,  1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f, -1.0f,
-
-            -1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-             1.0f, -1.0f, -1.0f,
-             1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-             1.0f, -1.0f,  1.0f
-        };
-
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        if (cubemap == 0)
+            global::loadCubemap(path, &cubemap);
 
         const char *vertCode =
             "#version 410 core\n"
@@ -111,13 +60,12 @@ private:
     }
 
 public:
-    Skybox(const char *skybox) {
-        path = skybox;
-    }
+    Skybox() {}
+    Skybox(GLuint cubemap) { setCubemap(cubemap); }
+    Skybox(const char *skybox) { path = skybox; }
 
-    ~Skybox() {
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
+    void setCubemap(GLuint cubemap) {
+        this->cubemap = cubemap;
     }
 
     GLuint getCubemap() {
@@ -125,7 +73,7 @@ public:
     }
 
     void Draw(glm::mat4 view, glm::mat4 projection) {
-        if (cubemap == 0) init();
+        if (shader == 0) init();
 
         // remove translation data
         view = glm::mat4(glm::mat3(view));
@@ -137,10 +85,10 @@ public:
         glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-        glBindVertexArray(VAO);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        global::drawCube();
 
         glBindVertexArray(0);
         glDepthFunc(GL_LESS);
