@@ -11,7 +11,7 @@ enum Movement { FORWARD, BACKWARD, LEFT, RIGHT, TOP, BOTTOM };
 
 const float YAW         = -90.0f;
 const float PITCH       =  0.0f;
-const float SPEED       =  2.5f;
+const float SPEED       =  5.0f;
 const float SENSITIVITY =  0.1f;
 const float ZOOM        =  45.0f;
 
@@ -73,18 +73,21 @@ public:
     void ProcessKeyboard(Movement direction, float deltaTime) {
         float velocity = MovementSpeed * deltaTime;
 
+        glm::vec3 MoveFront = glm::normalize(glm::vec3(Front.x, 0.0f, Front.z));
+        glm::vec3 MoveRight = glm::normalize(glm::vec3(Right.x, 0.0f, Right.z));
+
         if (direction == FORWARD)
-            Position += Front * velocity;
+            Position += MoveFront * velocity;
         if (direction == BACKWARD)
-            Position -= Front * velocity;
+            Position -= MoveFront * velocity;
         if (direction == LEFT)
-            Position -= Right * velocity;
+            Position -= MoveRight * velocity;
         if (direction == RIGHT)
-            Position += Right * velocity;
+            Position += MoveRight * velocity;
         if (direction == TOP)
-            Position += Up * velocity;
+            Position += WorldUp * velocity;
         if (direction == BOTTOM)
-            Position -= Up * velocity;
+            Position -= WorldUp * velocity;
     }
 
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true) {
