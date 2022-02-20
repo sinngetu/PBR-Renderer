@@ -39,6 +39,11 @@ void Debug::init() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 }
 
+/**
+ * 贴图渲染
+ * @brief 将贴图渲染并铺满至整个屏幕
+ * @param texture 需要渲染的贴图
+ */ 
 void Debug::render(GLuint texture) {
     if (planeVAO == 0)
         init();
