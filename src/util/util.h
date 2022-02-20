@@ -10,5 +10,6 @@ public: void render(GLuint texture);
 };
 
 GLuint generateIrradianceMap(GLuint &cubemap, unsigned int resolutionRatio = 32);
+GLuint generatePrefilterMap(GLuint &cubemap, unsigned int resolutionRation = 128);
 }
 #endif

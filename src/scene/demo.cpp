@@ -30,9 +30,12 @@ namespace scene::demo {
 using namespace scene::demo;
 
 scene::Demo::Demo() {
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
     global::loadCubemap(skyboxPath.c_str(), &envMap);
     GLuint irradianceMap = util::generateIrradianceMap(envMap);
-    skybox.setCubemap(irradianceMap);
+    GLuint prefilterMap = util::generatePrefilterMap(envMap);
+    skybox.setCubemap(prefilterMap);
 
     mat4 M = mat4(1.0f);
     M = translate(M, vec3(0.0f, -1.0f, 0.0f));
