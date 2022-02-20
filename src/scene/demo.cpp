@@ -16,7 +16,7 @@ namespace scene::demo {
 
     Model model(modelPath.c_str());
     Shadow shadow;
-    Skybox skybox(skyboxPath.c_str());
+    Skybox skybox;
     material::Default mtl;
     util::Debug debug;
 
@@ -24,11 +24,16 @@ namespace scene::demo {
     vec3 lightColor(0.95f);
 
     std::vector<Model> models;
+    unsigned int envMap;
 }
 
 using namespace scene::demo;
 
 scene::Demo::Demo() {
+    global::loadCubemap(skyboxPath.c_str(), &envMap);
+    GLuint irradianceMap = util::generateIrradianceMap(envMap);
+    skybox.setCubemap(irradianceMap);
+
     mat4 M = mat4(1.0f);
     M = translate(M, vec3(0.0f, -1.0f, 0.0f));
 

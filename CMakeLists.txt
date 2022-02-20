@@ -17,6 +17,7 @@ add_executable (Renderer
 
 # utils
     src/util/debug.cpp
+    src/util/convolution.cpp
 
 # materials
     src/material/default.cpp
