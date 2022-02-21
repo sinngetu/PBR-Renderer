@@ -9,6 +9,49 @@ uniform float roughness;
 const float PI = 3.14159265359;
 const uint SAMPLE_COUNT = 4096u;
 
+float DistributionGGX(vec3 N, vec3 H, float roughness);
+float radicalInverse_VdC(uint bits);
+vec2 Hammersley(uint i, uint N);
+vec3 ImportanceSampleGGX(vec2 random, vec3 N, float roughness);
+
+void main() {
+    vec3 N = normalize(direction.xyz); // direction of out radiance
+    vec3 V = N; // make view direction always equal out direction, discard the out direction precision
+
+    vec3 color = vec3(0.0);
+    float totalWeight = 0.0;
+
+    for(uint i = 0u; i < SAMPLE_COUNT; i++) {
+        vec2 random = Hammersley(i, SAMPLE_COUNT);
+        vec3 H = ImportanceSampleGGX(random, N, roughness); // generate sample vector(importance sampling)
+        vec3 L  = normalize(2.0 * dot(V, H) * H - V); // L+V = 2 * H(V·H)
+
+        float NdotL = max(dot(N, L), 0.0);
+
+        if(NdotL > 0.0) {
+            // reduce artifact, sample from the environment's mip level based on roughness/pdf
+            float D = DistributionGGX(N, H, roughness);
+            float NdotH = max(dot(N, H), 0.0);
+            float HdotV = max(dot(H, V), 0.0);
+            float pdf = D * NdotH / (4.0 * HdotV) + 0.0001; // +0.0001 avoid 0, same below
+
+            float resolution = 512.0; // resolution of source cubemap (per face)
+            float texel  = 4.0 * PI / (6.0 * resolution * resolution);
+            float sampled = 1.0 / (float(SAMPLE_COUNT) * pdf + 0.0001);
+
+            float mipLevel = roughness == 0.0 ? 0.0 : 0.5 * log2(sampled / texel); 
+
+            color += textureLod(env, L, mipLevel).rgb * NdotL;
+
+            totalWeight += NdotL;
+        }
+    }
+
+    color = color / totalWeight;
+
+    ST_Target = vec4(color, 1.0);
+}
+
 // D = GGXTR(n, h, α) = α^2 / π * ((n·h)^2 * (α^2 - 1) + 1)^2
 float DistributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness * roughness;
@@ -79,42 +122,4 @@ vec3 ImportanceSampleGGX(vec2 random, vec3 N, float roughness) {
 	vec3 bitangent = cross(N, tangent);
 
 	return normalize(tangent * H.x + bitangent * H.y + N * H.z);
-}
-
-void main() {
-    vec3 N = normalize(direction.xyz); // direction of out radiance
-    vec3 V = N; // make view direction always equal out direction, discard the out direction precision
-
-    vec3 color = vec3(0.0);
-    float totalWeight = 0.0;
-
-    for(uint i = 0u; i < SAMPLE_COUNT; i++) {
-        vec2 random = Hammersley(i, SAMPLE_COUNT);
-        vec3 H = ImportanceSampleGGX(random, N, roughness); // generate sample vector(importance sampling)
-        vec3 L  = normalize(2.0 * dot(V, H) * H - V); // L+V = 2 * H(V·H)
-
-        float NdotL = max(dot(N, L), 0.0);
-
-        if(NdotL > 0.0) {
-            // reduce artifact, sample from the environment's mip level based on roughness/pdf
-            float D = DistributionGGX(N, H, roughness);
-            float NdotH = max(dot(N, H), 0.0);
-            float HdotV = max(dot(H, V), 0.0);
-            float pdf = D * NdotH / (4.0 * HdotV) + 0.0001; // +0.0001 avoid 0, same below
-
-            float resolution = 512.0; // resolution of source cubemap (per face)
-            float texel  = 4.0 * PI / (6.0 * resolution * resolution);
-            float sampled = 1.0 / (float(SAMPLE_COUNT) * pdf + 0.0001);
-
-            float mipLevel = roughness == 0.0 ? 0.0 : 0.5 * log2(sampled / texel); 
-
-            color += textureLod(env, L, mipLevel).rgb * NdotL;
-
-            totalWeight += NdotL;
-        }
-    }
-
-    color = color / totalWeight;
-
-    ST_Target = vec4(color, 1.0);
 }
