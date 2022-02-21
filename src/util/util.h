@@ -5,8 +5,14 @@
 
 namespace util {
 class Debug {
-private: void init();
-public: void render(GLuint texture);
+private:
+    bool singleColor;
+    void init();
+
+public:
+    Debug() { singleColor = false; };
+    Debug(bool singleColor) { this->singleColor = singleColor; };
+    void render(GLuint texture);
 };
 
 GLuint generateIrradianceMap(GLuint &cubemap, unsigned int resolutionRatio = 32);

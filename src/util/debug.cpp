@@ -51,6 +51,7 @@ void Debug::render(GLuint texture) {
     glDisable(GL_DEPTH_TEST);
 
     debug::shader.use();
+    debug::shader.setInt("singleColor", singleColor);
     debug::shader.setInt("theTexture", 0);
 
     glBindVertexArray(debug::planeVAO);
