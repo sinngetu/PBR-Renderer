@@ -30,7 +30,7 @@ bool firstMouse = true, isInit = false;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-void processInput() {
+void inputHandle() {
     if(glfwGetKey(global::window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(global::window, true);
 
@@ -93,8 +93,8 @@ bool init() {
 
     // window
     window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "draw", NULL, NULL);
-    if (window == NULL)
-    {
+
+    if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return false;

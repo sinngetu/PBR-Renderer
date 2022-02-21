@@ -27,7 +27,7 @@ void loop(Scene *scene) {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        processInput();
+        inputHandle();
 
         scene->loop();
 

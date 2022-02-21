@@ -29,7 +29,7 @@ extern float lastY;
 extern float deltaTime;
 extern float lastFrame;
 
-extern void processInput();
+extern void inputHandle();
 extern void onMouseMove(GLFWwindow* window, double xpos, double ypos);
 extern void onScroll(GLFWwindow* window, double xoffset, double yoffset);
 extern void framebufferSizeCallback(GLFWwindow *window, int width, int height);
