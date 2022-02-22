@@ -25,6 +25,7 @@ namespace scene::demo {
 
     std::vector<Model> models;
     unsigned int envMap;
+    GLuint brdfLUT;
 }
 
 using namespace scene::demo;
@@ -35,6 +36,7 @@ scene::Demo::Demo() {
     global::loadCubemap(skyboxPath.c_str(), &envMap);
     GLuint irradianceMap = util::generateIrradianceMap(envMap);
     GLuint prefilterMap = util::generatePrefilterMap(envMap);
+    brdfLUT = util::generateBRDFLUT();
     skybox.setCubemap(prefilterMap);
 
     mat4 M = mat4(1.0f);
@@ -62,8 +64,9 @@ void scene::Demo::loop() {
     mtl.setViewPositon(global::camera.Position);
     mtl.setShadow(shadow.getWorldToLight());
 
-    scene::demo::model.Draw(mtl);
-    skybox.Draw(view, projection);
+    // scene::demo::model.Draw(mtl);
+    // skybox.Draw(view, projection);
 
+    debug.render(brdfLUT);
     // debug.render(shadow.getMap());
 }

@@ -139,3 +139,45 @@ GLuint util::generatePrefilterMap(GLuint &cubemap, unsigned int resolution) {
 
     return prefilterMap;
 }
+
+namespace util::convolution::brdf {
+    fs::path vert = global::resolvePath("src/shader/convolution/shader.vert");
+    fs::path frag = global::resolvePath("src/shader/convolution/BRDF.frag");
+    Shader shader(vert.c_str(), frag.c_str());
+}
+
+/**
+ * BRDF积分的 Look-Up Table 贴图生成
+ * @param resolution 生成的贴图分辨率
+ * @return BRDF LUT 贴图
+ */
+GLuint util::generateBRDFLUT(unsigned int resolution) {
+    unsigned int LUT, FBO;
+
+    glGenTextures(1, &LUT);
+    glGenFramebuffers(1, &FBO);
+    glBindTexture(GL_TEXTURE_2D, LUT);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+    // use GL_RG16F to pre-allocate enough memory
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, resolution, resolution, 0, GL_RG, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, LUT, 0);
+
+    glViewport(0, 0, resolution, resolution);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    brdf::shader.use();
+    global::drawQuad();
+
+    glViewport(0, 0, global::SCREEN_WIDTH, global::SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &FBO);
+
+    return LUT;
+}
