@@ -115,8 +115,10 @@ bool init() {
     return true;
 }
 
-void loadTexture(char const* path, unsigned int* id) {
-    glGenTextures(1, id);
+GLuint loadTexture(const char *path, bool flipY) {
+    GLuint texture;
+    glGenTextures(1, &texture);
+    stbi_set_flip_vertically_on_load(flipY);
 
     int width, height, channels;
     unsigned char *data = stbi_load(path, &width, &height, &channels, 0);
@@ -130,7 +132,7 @@ void loadTexture(char const* path, unsigned int* id) {
         else if (channels == 4)
             format = GL_RGBA;
 
-        glBindTexture(GL_TEXTURE_2D, *id);
+        glBindTexture(GL_TEXTURE_2D, texture);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -143,14 +145,17 @@ void loadTexture(char const* path, unsigned int* id) {
     }
 
     stbi_image_free(data);
+
+    return texture;
 }
 
-void loadCubemap(const char *cubemap, unsigned int* id) {
-    glGenTextures(1, id);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, *id);
+GLuint loadCubemap(const char *path) {
+    GLuint cubemap;
+    glGenTextures(1, &cubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
 
     int width, height, channels;
-    unsigned char *data = stbi_load(cubemap, &width, &height, &channels, 0);
+    unsigned char *data = stbi_load(path, &width, &height, &channels, 0);
 
     unsigned int coords[6][2] = {
         // {x, y}
@@ -190,7 +195,7 @@ void loadCubemap(const char *cubemap, unsigned int* id) {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, faceWidth, faceHeight, 0, format, GL_UNSIGNED_BYTE, faceData);
         }
     } else {
-        std::cout << "Cubemap texture failed to load at path: " << cubemap << std::endl;
+        std::cout << "Cubemap texture failed to load at path: " << path << std::endl;
     }
 
     stbi_image_free(data);
@@ -201,22 +206,23 @@ void loadCubemap(const char *cubemap, unsigned int* id) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return cubemap;
 }
 
-void loadCubemap(std::vector<std::string> faces, unsigned int* id) {
-    glGenTextures(1, id);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, *id);
+GLuint loadCubemap(std::vector<std::string> faces) {
+    GLuint cubemap;
+
+    glGenTextures(1, &cubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
 
     int width, height, channels;
 
     for(unsigned int i = 0; i < faces.size(); i++) {
         unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &channels, 0);
 
-        if(data) {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        } else {
-            std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
-        }
+        if(data) glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        else     std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
 
         stbi_image_free(data);
     }
@@ -226,6 +232,8 @@ void loadCubemap(std::vector<std::string> faces, unsigned int* id) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return cubemap;
 }
 
 unsigned int cubeVBO, cubeVAO = 0;

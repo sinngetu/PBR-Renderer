@@ -9,7 +9,7 @@ private:
 
     void init() {
         if (cubemap == 0)
-            global::loadCubemap(path, &cubemap);
+            cubemap = global::loadCubemap(path);
 
         const char *vertCode =
             "#version 410 core\n"
