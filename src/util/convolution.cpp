@@ -122,8 +122,6 @@ GLuint util::generatePrefilterMap(GLuint &cubemap, unsigned int resolution) {
         unsigned int mipHeight = static_cast<unsigned int>(resolution * std::pow(0.5, mip));
         float roughness = (float)mip / (float)(maxMipLevels - 1);
 
-        // glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-        // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
         glViewport(0, 0, mipWidth, mipHeight);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, prefilterMap, mip);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -173,11 +171,58 @@ GLuint util::generateBRDFLUT(unsigned int resolution) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     brdf::shader.use();
-    global::drawQuad();
+    global::drawQuadra();
 
     glViewport(0, 0, global::SCREEN_WIDTH, global::SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDeleteFramebuffers(1, &FBO);
 
     return LUT;
+}
+
+namespace util::convolution::bilateral_filter {
+    fs::path vert = global::resolvePath("src/shader/convolution/shader.vert");
+    fs::path frag = global::resolvePath("src/shader/convolution/BilateralFilter.frag");
+    fs::path geom = global::resolvePath("src/shader/convolution/shader.geom");
+    Shader shader(vert.c_str(), frag.c_str());
+}
+
+/**
+ * 双边滤波器
+ * @param image 输入值贴图
+ * @param width   生成的贴图宽度分辨率
+ * @param height  生成的贴图高度分辨率
+ * @return 通过滤波器后生成的贴图
+ */
+GLuint util::bilateralFilter(GLuint &image, unsigned int width, unsigned int height) {
+    GLuint FBO, filterMap;
+
+    glGenFramebuffers(1, &FBO);
+    glGenTextures(1, &filterMap);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    glBindTexture(GL_TEXTURE_2D, filterMap);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glViewport(0, 0, width, height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, filterMap, 0);
+
+    bilateral_filter::shader.use();
+    bilateral_filter::shader.setInt("image", 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, image);
+
+    global::drawQuadra();
+
+    glViewport(0, 0, global::SCREEN_WIDTH, global::SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &FBO);
+
+    return filterMap;
 }

@@ -9,10 +9,10 @@ uniform float roughness;
 const float PI = 3.14159265359;
 const uint SAMPLE_COUNT = 4096u;
 
-float DistributionGGX(vec3 N, vec3 H, float roughness);
+float GGX(vec3 N, vec3 H, float roughness);
 float radicalInverse_VdC(uint bits);
-vec2 Hammersley(uint i, uint N);
-vec3 ImportanceSampleGGX(vec2 random, vec3 N, float roughness);
+vec2  Hammersley(uint i, uint N);
+vec3  ImportanceSampleGGX(vec2 random, vec3 N, float roughness);
 
 void main() {
     vec3 N = normalize(direction.xyz); // direction of out radiance
@@ -30,7 +30,7 @@ void main() {
 
         if(NdotL > 0.0) {
             // reduce artifact, sample from the environment's mip level based on roughness/pdf
-            float D = DistributionGGX(N, H, roughness);
+            float D = GGX(N, H, roughness);
             float NdotH = max(dot(N, H), 0.0);
             float HdotV = max(dot(H, V), 0.0);
             float pdf = D * NdotH / (4.0 * HdotV) + 0.0001; // +0.0001 avoid 0, same below
@@ -52,8 +52,8 @@ void main() {
     ST_Target = vec4(color, 1.0);
 }
 
-// D = GGXTR(n, h, α) = α^2 / π * ((n·h)^2 * (α^2 - 1) + 1)^2
-float DistributionGGX(vec3 N, vec3 H, float roughness) {
+// D = GGXTR(n, h, α) = α^2 / π((n·h)^2 * (α^2 - 1) + 1)^2
+float GGX(vec3 N, vec3 H, float roughness) {
     float a = roughness * roughness;
     float a2 = a * a;
     float NdotH = max(dot(N, H), 0.0);

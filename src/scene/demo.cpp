@@ -11,21 +11,19 @@
 using namespace glm;
 
 namespace scene::demo {
+    fs::path lenaPath = global::resolvePath("assets/lena.png");
     fs::path skyboxPath = global::resolvePath("assets/skybox/3.png");
-    fs::path modelPath = global::resolvePath("assets/decoretive.obj");
 
-    Model model(modelPath.c_str());
     Shadow shadow;
     Skybox skybox;
     material::Default mtl;
     util::Debug debug;
 
     vec3 lightDirection(-2.0f, 4.0f, -1.0f);
-    vec3 lightColor(0.95f);
+    vec3 lightColor(10.0f);
 
     std::vector<Model> models;
-    unsigned int envMap;
-    GLuint brdfLUT;
+    unsigned int lena, filterMap;
 }
 
 using namespace scene::demo;
@@ -33,17 +31,15 @@ using namespace scene::demo;
 scene::Demo::Demo() {
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    global::loadCubemap(skyboxPath.c_str(), &envMap);
-    GLuint irradianceMap = util::generateIrradianceMap(envMap);
-    GLuint prefilterMap = util::generatePrefilterMap(envMap);
-    brdfLUT = util::generateBRDFLUT();
-    skybox.setCubemap(prefilterMap);
+    lena = global::loadTexture(lenaPath.c_str());
+    filterMap = util::bilateralFilter(lena);
+    // skybox.setCubemap(filterMap);
 
     mat4 M = mat4(1.0f);
     M = translate(M, vec3(0.0f, -1.0f, 0.0f));
 
-    model.setM(M);
-    models.push_back(model);
+    // model.setM(M);
+    // models.push_back(model);
 
     mtl.setLight(lightDirection, lightColor);
     shadow.setPorps(lightDirection, vec3(0.0f, 1.0f, 0.0f), 2.5f);
@@ -57,16 +53,16 @@ void scene::Demo::loop() {
     mat4 view = global::camera.GetViewMatrix();
     mat4 projection = perspective(radians(global::camera.Zoom), (float)global::SCREEN_WIDTH / (float)global::SCREEN_HEIGHT, 0.1f, 100.0f);
 
-    shadow.shadowMapping(models);
-    shadow.setMap();
+    // shadow.shadowMapping(models);
+    // shadow.setMap();
 
-    mtl.setVP(view, projection);
-    mtl.setViewPositon(global::camera.Position);
-    mtl.setShadow(shadow.getWorldToLight());
+    // mtl.setVP(view, projection);
+    // mtl.setViewPositon(global::camera.Position);
+    // mtl.setShadow(shadow.getWorldToLight());
 
     // scene::demo::model.Draw(mtl);
     // skybox.Draw(view, projection);
 
-    debug.render(brdfLUT);
+    debug.render(filterMap);
     // debug.render(shadow.getMap());
 }

@@ -25,8 +25,8 @@ void main() {
              * spherical coordinates => cartesian coordinates
              * 
              * x: sinθ * cosφ
-             * y: θ
-             * z: sinθ * cosφ
+             * y: cosθ
+             * z: sinθ * sinφ
              */
             vec3 sampleTS = vec3(sin(theta) * cos(phi), cos(theta), sin(theta) * sin(phi));
             vec3 sampleWS = sampleTS.x * T + sampleTS.y * B + sampleTS.z * N; 
