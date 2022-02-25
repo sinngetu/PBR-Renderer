@@ -27,19 +27,22 @@ void main() {
 
     for(int x = -HALF_RANGE; x < HALF_RANGE; x++) {
         for(int y = -HALF_RANGE; y < HALF_RANGE; y++) {
-            vec3 value = texture(image, uv + vec2(deltaUV.x * x, deltaUV.y * y)).rgb;
+            vec2 sampleUV = uv + vec2(deltaUV.x * x, deltaUV.y * y);
+            vec4 value = texture(image, sampleUV);
 
-            float Gs_diff = x*x + y*y;
-            vec3  Gr_diff = 255.0 * (center - value); // zoom difference
-            Gr_diff *= Gr_diff;
+            if (sampleUV.x >= 0.0 && sampleUV.y >= 0.0 && sampleUV.x <= 1.0 && sampleUV.y <= 1.0 && value.a > 0.0) {
+                float Gs_diff = x*x + y*y;
+                vec3  Gr_diff = 255.0 * (center - value.rgb); // zoom difference
+                Gr_diff *= Gr_diff;
 
-            float Gs = exp(Gs_diff * Gs_coef);
-            vec3  Gr = exp(Gr_diff * Gr_coef);
+                float Gs = exp(Gs_diff * Gs_coef);
+                vec3  Gr = exp(Gr_diff * Gr_coef);
 
-            vec3 Wp = Gs * Gr;
+                vec3 Wp = Gs * Gr;
 
-            result += Wp * value;
-            weight += Wp;
+                result += Wp * value.rgb;
+                weight += Wp;
+            }
         }
     }
 

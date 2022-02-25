@@ -69,10 +69,10 @@ vec2 IntegrateBRDF(float NdotV, float roughness) {
         float VdotH = max(dot(V, H), 0.0);
 
         /**
-         * coefficient * F0 + offset
+         * F * coefficient + offset
          * 
          * Complete Formula:
-         * F0 * ∫ f(p, ωi, ωo)(1 − (1 − ωo⋅h)^5)n⋅ωi dωi + ∫ f(p, ωi, ωo)((1 − ωo⋅h)^5)n⋅ωi dωi
+         * F * ∫ f(p, ωi, ωo)(1 − (1 − ωo⋅h)^5)n⋅ωi dωi + ∫ f(p, ωi, ωo)((1 − ωo⋅h)^5)n⋅ωi dωi
          */
         if(NdotL > 0.0) {
             float G = G_Smith(N, V, L, roughness);

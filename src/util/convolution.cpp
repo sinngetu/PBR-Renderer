@@ -183,15 +183,18 @@ GLuint util::generateBRDFLUT(unsigned int resolution) {
 namespace util::convolution::bilateral_filter {
     fs::path vert = global::resolvePath("src/shader/convolution/shader.vert");
     fs::path frag = global::resolvePath("src/shader/convolution/BilateralFilter.frag");
+    fs::path cubemapFrag = global::resolvePath("src/shader/convolution/BilateralFilterCubemap.frag");
     fs::path geom = global::resolvePath("src/shader/convolution/shader.geom");
+
     Shader shader(vert.c_str(), frag.c_str());
+    Shader cubemapShader(vert.c_str(), cubemapFrag.c_str(), geom.c_str());
 }
 
 /**
  * 双边滤波器
- * @param image 输入值贴图
- * @param width   生成的贴图宽度分辨率
- * @param height  生成的贴图高度分辨率
+ * @param image  输入值贴图
+ * @param width  生成的贴图宽度分辨率
+ * @param height 生成的贴图高度分辨率
  * @return 通过滤波器后生成的贴图
  */
 GLuint util::bilateralFilter(GLuint &image, unsigned int width, unsigned int height) {
@@ -202,7 +205,7 @@ GLuint util::bilateralFilter(GLuint &image, unsigned int width, unsigned int hei
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
     glBindTexture(GL_TEXTURE_2D, filterMap);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -219,6 +222,51 @@ GLuint util::bilateralFilter(GLuint &image, unsigned int width, unsigned int hei
     glBindTexture(GL_TEXTURE_2D, image);
 
     global::drawQuadra();
+
+    glViewport(0, 0, global::SCREEN_WIDTH, global::SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &FBO);
+
+    return filterMap;
+}
+
+/**
+ * 双边滤波器(Cubemap版)
+ * @param cubemap    输入值贴图
+ * @param resolution 生成的立方体贴图的每一面的分辨率
+ * @return 通过滤波器后生成的立方体贴图
+ */
+GLuint util::bilateralFilterCubemap(GLuint &cubemap, unsigned int resolution) {
+    GLuint FBO, filterMap;
+
+    glGenFramebuffers(1, &FBO);
+    glGenTextures(1, &filterMap);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, filterMap);
+
+    for (unsigned int i = 0; i < 6; ++i)
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, resolution, resolution, 0, GL_RGB, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glViewport(0, 0, resolution, resolution);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, filterMap, 0);
+
+    bilateral_filter::cubemapShader.use();
+    bilateral_filter::cubemapShader.setInt("image", 0);
+    bilateral_filter::cubemapShader.setMat4("projection", projection);
+
+    for (unsigned int i = 0; i < 6; i++)
+        bilateral_filter::cubemapShader.setMat4("views[" + std::to_string(i) + "]", views[i]);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+
+    global::drawCube();
 
     glViewport(0, 0, global::SCREEN_WIDTH, global::SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

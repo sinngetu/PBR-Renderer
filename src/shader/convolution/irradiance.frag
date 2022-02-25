@@ -11,10 +11,10 @@ const float MAX_THETA = 0.5 * PI; // 0.5 can cover the halfsphere, 1.0 will repe
 uniform samplerCube env;
 
 void main() {
-    vec3 N = vec3(0.0, 1.0, 0.0);
-    vec3 B = normalize(direction.xyz);
+    vec3 N = normalize(direction.xyz);
+    vec3 B = vec3(0.0, 1.0, 0.0);
     vec3 T = normalize(cross(B, N));
-    N = normalize(cross(B, T));
+    B = normalize(cross(N, T));
 
     vec3 irradiance = vec3(1.0);
     uint count = 1;
@@ -25,11 +25,11 @@ void main() {
              * spherical coordinates => cartesian coordinates
              * 
              * x: sinθ * cosφ
-             * y: cosθ
-             * z: sinθ * sinφ
+             * y: sinθ * sinφ
+             * z: cosθ
              */
-            vec3 sampleTS = vec3(sin(theta) * cos(phi), cos(theta), sin(theta) * sin(phi));
-            vec3 sampleWS = sampleTS.x * T + sampleTS.y * B + sampleTS.z * N; 
+            vec3 sampleTS = vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
+            vec3 sampleWS = sampleTS.x * T + sampleTS.y * B + sampleTS.z * N;
 
             /**
              * f(x) = sin(x) * cos(x)
