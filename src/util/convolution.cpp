@@ -7,7 +7,11 @@
 
 using namespace glm;
 
+// TODO: 抽离可复用的2D贴图与立方体贴图生成代码
 namespace util::convolution {
+    fs::path vert = global::resolvePath("src/shader/convolution/shader.vert");
+    fs::path geom = global::resolvePath("src/shader/convolution/shader.geom");
+
     mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
     mat4 views[] = {
         lookAt(vec3(0.0f, 0.0f, 0.0f), vec3( 1.0f,  0.0f,  0.0f), vec3(0.0f, -1.0f,  0.0f)),
@@ -22,9 +26,7 @@ namespace util::convolution {
 using namespace util::convolution;
 
 namespace util::convolution::irradiance {
-    fs::path vert = global::resolvePath("src/shader/convolution/shader.vert");
     fs::path frag = global::resolvePath("src/shader/convolution/irradiance.frag");
-    fs::path geom = global::resolvePath("src/shader/convolution/shader.geom");
     Shader shader(vert.c_str(), frag.c_str(), geom.c_str());
 }
 
@@ -75,9 +77,7 @@ GLuint util::generateIrradianceMap(GLuint &cubemap, unsigned int resolution) {
 
 
 namespace util::convolution::prefilter {
-    fs::path vert = global::resolvePath("src/shader/convolution/shader.vert");
     fs::path frag = global::resolvePath("src/shader/convolution/prefilter.frag");
-    fs::path geom = global::resolvePath("src/shader/convolution/shader.geom");
     Shader shader(vert.c_str(), frag.c_str(), geom.c_str());
 }
 
@@ -139,7 +139,6 @@ GLuint util::generatePrefilterMap(GLuint &cubemap, unsigned int resolution) {
 }
 
 namespace util::convolution::brdf {
-    fs::path vert = global::resolvePath("src/shader/convolution/shader.vert");
     fs::path frag = global::resolvePath("src/shader/convolution/BRDF.frag");
     Shader shader(vert.c_str(), frag.c_str());
 }
@@ -181,10 +180,8 @@ GLuint util::generateBRDFLUT(unsigned int resolution) {
 }
 
 namespace util::convolution::bilateral_filter {
-    fs::path vert = global::resolvePath("src/shader/convolution/shader.vert");
     fs::path frag = global::resolvePath("src/shader/convolution/BilateralFilter.frag");
     fs::path cubemapFrag = global::resolvePath("src/shader/convolution/BilateralFilterCubemap.frag");
-    fs::path geom = global::resolvePath("src/shader/convolution/shader.geom");
 
     Shader shader(vert.c_str(), frag.c_str());
     Shader cubemapShader(vert.c_str(), cubemapFrag.c_str(), geom.c_str());
@@ -262,6 +259,58 @@ GLuint util::bilateralFilterCubemap(GLuint &cubemap, unsigned int resolution) {
 
     for (unsigned int i = 0; i < 6; i++)
         bilateral_filter::cubemapShader.setMat4("views[" + std::to_string(i) + "]", views[i]);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+
+    global::drawCube();
+
+    glViewport(0, 0, global::SCREEN_WIDTH, global::SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &FBO);
+
+    return filterMap;
+}
+
+namespace util::convolution::gaussian_filter {
+    fs::path cubemapFrag = global::resolvePath("src/shader/convolution/GaussianFilterCubemap.frag");
+    Shader cubemapShader(vert.c_str(), cubemapFrag.c_str(), geom.c_str());
+}
+
+/**
+ * 高斯滤波器(Cubemap版)
+ * @param cubemap    输入值贴图
+ * @param resolution 生成的立方体贴图的每一面的分辨率
+ * @param radius     用于计算高斯滤波覆盖的区域半径，计算方式：0.5π / radius
+ * @return 通过滤波器后生成的立方体贴图
+ */
+GLuint util::gaussianFilterCubemap(GLuint &cubemap, unsigned int resolution, unsigned int radius) {
+    GLuint FBO, filterMap;
+
+    glGenFramebuffers(1, &FBO);
+    glGenTextures(1, &filterMap);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, filterMap);
+
+    for (unsigned int i = 0; i < 6; ++i)
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, resolution, resolution, 0, GL_RGB, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glViewport(0, 0, resolution, resolution);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, filterMap, 0);
+
+    gaussian_filter::cubemapShader.use();
+    gaussian_filter::cubemapShader.setInt("image", 0);
+    gaussian_filter::cubemapShader.setFloat("radius", (float)radius);
+    gaussian_filter::cubemapShader.setMat4("projection", projection);
+
+    for (unsigned int i = 0; i < 6; i++)
+        gaussian_filter::cubemapShader.setMat4("views[" + std::to_string(i) + "]", views[i]);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);

@@ -21,5 +21,6 @@ GLuint generatePrefilterMap(GLuint &cubemap, unsigned int resolutionRation = 128
 GLuint generateBRDFLUT(unsigned int resolution = 512);
 GLuint bilateralFilter(GLuint &image, unsigned int width = global::SCREEN_WIDTH, unsigned int height = global::SCREEN_HEIGHT);
 GLuint bilateralFilterCubemap(GLuint &cubemap, unsigned int resolution = 1024);
+GLuint gaussianFilterCubemap(GLuint &cubemap, unsigned int resolution = 512, unsigned int radius = 256);
 }
 #endif
