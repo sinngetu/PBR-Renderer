@@ -22,5 +22,6 @@ GLuint generateBRDFLUT(unsigned int resolution = 512);
 GLuint bilateralFilter(GLuint &image, unsigned int width = global::SCREEN_WIDTH, unsigned int height = global::SCREEN_HEIGHT);
 GLuint bilateralFilterCubemap(GLuint &cubemap, unsigned int resolution = 1024);
 GLuint gaussianFilterCubemap(GLuint &cubemap, unsigned int resolution = 512, unsigned int radius = 256);
+GLuint inverseToneMapping(GLuint &LDR, GLuint &sigma, GLuint &surrounding, float maxValue = 10.0, unsigned int resolution = 1024);
 }
 #endif

@@ -323,3 +323,63 @@ GLuint util::gaussianFilterCubemap(GLuint &cubemap, unsigned int resolution, uns
 
     return filterMap;
 }
+
+namespace util::convolution::inverse_tone_mapping {
+    fs::path frag = global::resolvePath("src/shader/convolution/InverseToneMapping.frag");
+    Shader shader(vert.c_str(), frag.c_str(), geom.c_str());
+}
+
+/**
+ * 逆色调映射
+ * @param LDR         输入LDR贴图
+ * @param sigma       σ参数贴图
+ * @param surrounding 局部光强贴图
+ * @param maxValue    HDR贴图的最大值
+ * @param resolution  生成的立方体贴图的每一面的分辨率
+ * @return 生成的HDR贴图
+ */
+GLuint util::inverseToneMapping(GLuint &LDR, GLuint &sigma, GLuint &surrounding, float maxValue, unsigned int resolution) {
+    GLuint FBO, HDR;
+
+    glGenFramebuffers(1, &FBO);
+    glGenTextures(1, &HDR);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, HDR);
+
+    for (unsigned int i = 0; i < 6; ++i)
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, resolution, resolution, 0, GL_RGB, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glViewport(0, 0, resolution, resolution);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, HDR, 0);
+
+    inverse_tone_mapping::shader.use();
+    inverse_tone_mapping::shader.setInt("image", 0);
+    inverse_tone_mapping::shader.setInt("sigmaMap", 1);
+    inverse_tone_mapping::shader.setInt("surroundingMap", 2);
+    inverse_tone_mapping::shader.setFloat("maxValue", maxValue);
+    inverse_tone_mapping::shader.setMat4("projection", projection);
+
+    for (unsigned int i = 0; i < 6; i++)
+        inverse_tone_mapping::shader.setMat4("views[" + std::to_string(i) + "]", views[i]);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, LDR);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, sigma);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, surrounding);
+
+    global::drawCube();
+
+    glViewport(0, 0, global::SCREEN_WIDTH, global::SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &FBO);
+
+    return HDR;
+}

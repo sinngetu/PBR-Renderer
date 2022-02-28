@@ -12,7 +12,7 @@ using namespace glm;
 
 namespace scene::demo {
     fs::path lenaPath = global::resolvePath("assets/lena.png");
-    fs::path skyboxPath = global::resolvePath("assets/skybox/3.png");
+    fs::path skyboxPath = global::resolvePath("assets/skybox/1.png");
 
     Shadow shadow;
     Skybox skybox;
@@ -23,7 +23,7 @@ namespace scene::demo {
     vec3 lightColor(10.0f);
 
     std::vector<Model> models;
-    unsigned int lena, filterMap;
+    unsigned int envMap, HDRMap;
 }
 
 using namespace scene::demo;
@@ -31,9 +31,12 @@ using namespace scene::demo;
 scene::Demo::Demo() {
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    lena = global::loadTexture(lenaPath.c_str());
-    filterMap = util::bilateralFilter(lena);
-    // skybox.setCubemap(filterMap);
+    envMap = global::loadCubemap(skyboxPath.c_str());
+    GLuint gaussianFilterMap = util::gaussianFilterCubemap(envMap);
+    GLuint bilateralFilterMap = util::bilateralFilterCubemap(envMap);
+    HDRMap = util::inverseToneMapping(envMap, gaussianFilterMap, bilateralFilterMap);
+
+    skybox.setCubemap(HDRMap);
 
     mat4 M = mat4(1.0f);
     M = translate(M, vec3(0.0f, -1.0f, 0.0f));
@@ -61,8 +64,8 @@ void scene::Demo::loop() {
     // mtl.setShadow(shadow.getWorldToLight());
 
     // scene::demo::model.Draw(mtl);
-    // skybox.Draw(view, projection);
+    skybox.Draw(view, projection);
 
-    debug.render(filterMap);
+    // debug.render(filterMap);
     // debug.render(shadow.getMap());
 }
