@@ -1,6 +1,6 @@
 #version 410 core
 
-out vec4 ST_Target;
+out vec4 SV_Target;
 in vec4 direction;
 
 const float N = 0.86; // generally between 0.7 (long test flashes) and 1.0 (short test flashes)
@@ -56,5 +56,5 @@ void main() {
     float scale = Lh / Ll;
     vec3 result = color * scale;
 
-    ST_Target = vec4(result, 1.0);
+    SV_Target = vec4(result, 1.0);
 }

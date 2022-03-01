@@ -1,6 +1,6 @@
 #version 410 core
 
-out vec4 ST_Target;
+out vec4 SV_Target;
 in vec4 direction;
 
 uniform samplerCube env;
@@ -49,7 +49,7 @@ void main() {
 
     color = color / totalWeight;
 
-    ST_Target = vec4(color, 1.0);
+    SV_Target = vec4(color, 1.0);
 }
 
 // D = GGXTR(n, h, α) = α^2 / π((n·h)^2 * (α^2 - 1) + 1)^2

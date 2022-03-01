@@ -7,7 +7,7 @@ in V2F {
     vec2 uv;
 } i;
 
-out vec4 ST_Target;
+out vec4 SV_Target;
 
 struct DirectionalLight {
     vec3 direction;
@@ -40,7 +40,7 @@ void main() {
     color = ((1.0 - shadow) * (diffuse + specular) + ambient) * color;
     color = GammaCorrection(color);
 
-    ST_Target = vec4(color, 1.0);
+    SV_Target = vec4(color, 1.0);
 }
 
 float getShadow(vec4 positionLS, float bias) {

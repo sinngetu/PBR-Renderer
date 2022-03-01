@@ -7,6 +7,19 @@ private:
     GLuint shader = 0, cubemap = 0;
     const char *path;
 
+public:
+    Skybox() {}
+    Skybox(GLuint cubemap) { setCubemap(cubemap); }
+    Skybox(const char *skybox) { path = skybox; }
+
+    void setCubemap(GLuint cubemap) {
+        this->cubemap = cubemap;
+    }
+
+    GLuint getCubemap() {
+        return cubemap;
+    }
+
     void init() {
         if (cubemap == 0)
             cubemap = global::loadCubemap(path);
@@ -31,12 +44,12 @@ private:
             "#version 410 core\n"
 
             "in vec3 uv;\n"
-            "out vec4 ST_Target;\n"
+            "out vec4 SV_Target;\n"
 
             "uniform samplerCube skybox;\n"
 
             "void main() {\n"
-            "    ST_Target = texture(skybox, uv);\n"
+            "    SV_Target = texture(skybox, uv);\n"
             "}";
 
         // init shader
@@ -57,19 +70,6 @@ private:
 
         glDeleteShader(vertex);
         glDeleteShader(fragment);
-    }
-
-public:
-    Skybox() {}
-    Skybox(GLuint cubemap) { setCubemap(cubemap); }
-    Skybox(const char *skybox) { path = skybox; }
-
-    void setCubemap(GLuint cubemap) {
-        this->cubemap = cubemap;
-    }
-
-    GLuint getCubemap() {
-        return cubemap;
     }
 
     void Draw(glm::mat4 view, glm::mat4 projection) {

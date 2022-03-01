@@ -1,7 +1,7 @@
 #version 410 core
 
 in vec2 uv;
-out vec4 ST_Target;
+out vec4 SV_Target;
 
 const float PI = 3.14159265359;
 
@@ -14,7 +14,7 @@ float SchlickGGX(float NdotV, float roughness);
 
 void main() {
     vec2 BRDF = IntegrateBRDF(uv.x, uv.y);
-    ST_Target = vec4(BRDF, 0.0, 1.0);
+    SV_Target = vec4(BRDF, 0.0, 1.0);
 }
 
 /**

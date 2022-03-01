@@ -1,6 +1,6 @@
 #version 410 core
 
-out vec4 ST_Target;
+out vec4 SV_Target;
 in vec4 direction;
 
 const float PI = 3.14159265359;
@@ -43,5 +43,5 @@ void main() {
 
     irradiance = PI * irradiance * (1.0 / float(count));
 
-    ST_Target = vec4(irradiance, 1.0);
+    SV_Target = vec4(irradiance, 1.0);
 }
