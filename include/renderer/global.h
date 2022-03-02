@@ -35,7 +35,7 @@ extern void onScroll(GLFWwindow* window, double xoffset, double yoffset);
 extern void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 extern std::filesystem::path resolvePath(const char *path);
 extern bool init();
-extern GLuint loadTexture(char const* path, bool flipY = true);
+extern GLuint loadTexture(char const* path, bool flipY = false);
 extern GLuint loadCubemap(const char *cubemap);
 extern GLuint loadCubemap(std::vector<std::string> faces);
 extern void drawCube();

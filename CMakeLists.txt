@@ -21,6 +21,7 @@ add_executable (Renderer
 
 # materials
     src/material/default.cpp
+    src/material/PBR.cpp
 
 # scenes
     src/scene/demo.cpp
