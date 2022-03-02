@@ -96,6 +96,8 @@ void scene::Demo::loop() {
 
 void scene::Demo::renderScene() {
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
 
     mat4 view = global::camera.GetViewMatrix();
     mat4 projection = perspective(radians(global::camera.Zoom), (float)global::SCREEN_WIDTH / (float)global::SCREEN_HEIGHT, 0.1f, 100.0f);
@@ -115,6 +117,12 @@ void scene::Demo::renderScene() {
 
     scene::demo::model.Draw(mtl);
     skybox.Draw(view, projection);
+
+    // transparent queue
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // render transparent objects
 }
 
 void scene::Demo::postProcessing() {

@@ -62,11 +62,13 @@ void main() {
     if (uv.x > 1.0 || uv.x < 0.0 || uv.y > 1.0 || uv.x < 0.0)
         discard;
 
-    vec3  baseColor = texture(material.baseColorMap, uv).rgb;
+    vec4  fragument = texture(material.baseColorMap, uv);
+    vec3  baseColor = fragument.rgb;
     float metallic  = texture(material.metallicMap, uv).r;
     float roughness = texture(material.roughnessMap, uv).r;
     float ao        = texture(material.aoMap, uv).r;
     vec3  normal    = texture(material.normalMap, uv).xyz;
+    float alpha = fragument.a;
 
     vec3 L  = normalize(i.light.direction);
     vec3 H  = normalize(L + V);
@@ -159,9 +161,9 @@ void main() {
     vec3 color = direct + indirect;
 
     color = ToneMapping(color);
-    color = GammaCorrection(color);
+    // color = GammaCorrection(color);
 
-    SV_Target = vec4(color, 1.0);
+    SV_Target = vec4(color, alpha);
 }
 
 vec2 HeightMapping(vec2 uv, vec3 V) {
