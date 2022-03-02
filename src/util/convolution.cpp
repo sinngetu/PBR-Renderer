@@ -273,8 +273,51 @@ GLuint util::bilateralFilterCubemap(GLuint &cubemap, unsigned int resolution) {
 }
 
 namespace util::convolution::gaussian_filter {
+    fs::path frag = global::resolvePath("src/shader/convolution/GaussianFilter.frag");
     fs::path cubemapFrag = global::resolvePath("src/shader/convolution/GaussianFilterCubemap.frag");
+
+    Shader shader(vert.c_str(), frag.c_str());
     Shader cubemapShader(vert.c_str(), cubemapFrag.c_str(), geom.c_str());
+}
+
+/**
+ * 高斯滤波器
+ * @param image  输入值贴图
+ * @param width  生成的贴图宽度分辨率
+ * @param height 生成的贴图高度分辨率
+ * @return 通过滤波器后生成的贴图
+ */
+GLuint gaussianFilter(GLuint &image, unsigned int width = global::SCREEN_WIDTH, unsigned int height = global::SCREEN_HEIGHT) {
+    GLuint FBO, filterMap;
+
+    glGenFramebuffers(1, &FBO);
+    glGenTextures(1, &filterMap);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    glBindTexture(GL_TEXTURE_2D, filterMap);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glViewport(0, 0, width, height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, filterMap, 0);
+
+    gaussian_filter::shader.use();
+    gaussian_filter::shader.setInt("image", 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, image);
+
+    global::drawQuadra();
+
+    glViewport(0, 0, global::SCREEN_WIDTH, global::SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &FBO);
+
+    return filterMap;
 }
 
 /**

@@ -8,6 +8,10 @@ public:
 
 namespace scene {
 class Demo : public Scene {
+private:
+    void renderScene();
+    void postProcessing();
+
 public:
     Demo();
     void loop();
