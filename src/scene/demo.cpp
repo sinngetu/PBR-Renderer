@@ -49,7 +49,7 @@ namespace scene::demo {
 
 namespace scene::demo::model {
     std::vector<const char*> geometryPath = {
-        "assets/PreviewSphere"
+        "assets/PBR/PreviewSphere"
     };
 
     std::vector<const char*> transparentPath = {};
