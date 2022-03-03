@@ -1,3 +1,6 @@
+#ifndef SKYBOX_H
+#define SKYBOX_H
+
 #include <glm/glm.hpp>
 
 #include <renderer/global.h>
@@ -12,11 +15,11 @@ public:
     Skybox(GLuint cubemap) { setCubemap(cubemap); }
     Skybox(const char *skybox) { path = skybox; }
 
-    void setCubemap(GLuint cubemap) {
+    inline void setCubemap(GLuint cubemap) {
         this->cubemap = cubemap;
     }
 
-    GLuint getCubemap() {
+    inline GLuint getCubemap() {
         return cubemap;
     }
 
@@ -94,3 +97,4 @@ public:
         glDepthFunc(GL_LESS);
     }
 };
+#endif

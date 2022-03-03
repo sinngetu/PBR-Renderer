@@ -1,3 +1,6 @@
+#ifndef MATERIALS_H
+#define MATERIALS_H
+
 #include <renderer/shader.h>
 #include <renderer/material.h>
 #include <renderer/model.h>
@@ -20,19 +23,10 @@ private:
 
 public:
     PBR();
-    void setup(
-        GLuint envMap,
-        const char* baseColor,
-        const char* metallic,
-        const char* roughness,
-        const char* normal,
-        const char* height,
-        const char* ao
-    );
-
-    void setTextures();
+    void setup();
     void setHeightScale(float scale);
     void setLight(vec3 direction, vec3 color);
     void setShadow(GLuint shadowMap, mat4 WorldToLight);
 };
 }
+#endif

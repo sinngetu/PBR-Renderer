@@ -1,3 +1,6 @@
+#ifndef SHADOW_H
+#define SHADOW_H
+
 #include <filesystem>
 
 #include <glad/glad.h>
@@ -120,15 +123,16 @@ public:
         glBindTexture(GL_TEXTURE_2D, depthMap);
     }
 
-    GLuint getMap() {
+    inline GLuint getMap() {
         return depthMap;
     }
 
-    glm::mat4 getWorldToLight() {
+    inline glm::mat4 getWorldToLight() {
         return WorldToLight;
     }
 
-    void setTextureIndex(unsigned int i) {
+    inline void setTextureIndex(unsigned int i) {
         textureIndex = i;
     }
 };
+#endif

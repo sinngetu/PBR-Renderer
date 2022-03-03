@@ -110,7 +110,7 @@ public:
         return M;
     }
 
-private:
+protected:
     glm::mat4 M;
     std::vector<Mesh> meshes;
 
