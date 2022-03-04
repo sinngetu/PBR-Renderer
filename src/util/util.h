@@ -29,5 +29,10 @@ GLuint inverseToneMapping(GLuint &LDR, GLuint &sigma, GLuint &surrounding, float
 // post processing
 GLuint Bloom(GLuint &image, float threshold = 1.0);
 GLuint Correction(GLuint &image, bool toScreen = false, bool toneMapping = false, float exposure = 1.0);
+
+namespace write {
+    void image(GLuint &FBO, const char *filename, GLsizei width, GLsizei height, GLsizei channels = 3, GLenum format = GL_RGB, const char *outputDir = "export/");
+    void cubemap(GLuint &cubemap, GLuint &FBO, const char *filename, GLsizei resolution, GLsizei channels = 3, GLenum format = GL_RGB, const char *outputDir = "export/");
+}
 }
 #endif

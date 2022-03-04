@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include <renderer/global.h>
-#include <renderer/shader.h>
 
 #include "scene/scene.h"
 

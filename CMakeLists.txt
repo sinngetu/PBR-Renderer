@@ -11,6 +11,10 @@ link_libraries(${Renderer_SOURCE_DIR}/lib/libglfw.3.dylib)
 link_libraries(${Renderer_SOURCE_DIR}/lib/libassimp.5.dylib)
 
 add_executable (Renderer
+# prebuilt
+    # src/prebuilt.cpp
+    # src/util/write.cpp
+
 # entry
     src/main.cpp
     src/global.cpp
