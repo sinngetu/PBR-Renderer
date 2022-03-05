@@ -1,6 +1,10 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include <renderer/global.h>
+
+using namespace glm;
+
 class Scene {
 public:
     virtual void loop() {};
@@ -8,13 +12,15 @@ public:
 
 namespace scene {
 class Demo : public Scene {
-private:
-    void renderScene();
-    void postProcessing();
-
 public:
     Demo();
     void loop();
+    void renderScene(
+        GLuint FBO,
+        mat4 view = global::camera.GetViewMatrix(),
+        mat4 projection = perspective(radians(global::camera.Zoom), (float)global::SCREEN_WIDTH / (float)global::SCREEN_HEIGHT, 0.1f, 100.0f)
+    );
+    void postProcessing();
 };
 
 class Debug : public Scene {

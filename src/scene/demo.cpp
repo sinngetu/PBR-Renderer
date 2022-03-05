@@ -5,6 +5,7 @@
 
 #include "scene.h"
 
+#include "../material/material.h"
 #include "../util/util.h"
 #include "../util/PBRModel.h"
 
@@ -12,16 +13,14 @@ using namespace glm;
 
 namespace scene::demo {
     fs::path lenaPath = global::resolvePath("assets/lena.png");
-    fs::path skyboxPath = global::resolvePath("assets/skybox/1.png");
-    fs::path thepath = global::resolvePath("assets/PreviewSphere");
+    fs::path skyboxPath = global::resolvePath("assets/skybox/3.png");
 
-    PBRModel themodel(thepath.c_str());
     Shadow shadow;
     Skybox skybox(skyboxPath.c_str());
 
     DirectionalLight light = {
-        .direction = vec3(-2.0f, 4.0f, -1.0f),
-        .color = vec3(10.0) * vec3(0.8549f, 0.5843f, 0.5882f)
+        .direction = vec3(1.0f, 0.2f, 3.0f),
+        .color = vec3(15.0) * vec3(1.0f, 1.0f, 1.0f)
     };
 
     unsigned int FBO, colorBuffer, depth;
@@ -45,32 +44,49 @@ namespace scene::demo {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
+
+    GLuint texture;
+    util::Debug debug;
 }
 
 namespace scene::demo::model {
     std::vector<const char*> geometryPath = {
-        "assets/PBR/PreviewSphere"
+        "assets/PBR/bay_window",
+        "assets/PBR/books",
+        "assets/PBR/bookshelf_1",
+        "assets/PBR/bookshelf_2",
+        "assets/PBR/chandelier",
+        "assets/PBR/clock",
+        // "assets/PBR/pot_plant",
+        "assets/PBR/room",
+        "assets/PBR/sofa",
+        "assets/PBR/table",
+        "assets/PBR/window_frame"
     };
 
-    std::vector<const char*> transparentPath = {};
+    std::vector<const char*> transparentPath = {
+        "assets/PBR/window"
+    };
 
-    std::vector<Model> projection;
-    std::vector<PBRModel> geometry, transparent;
+    std::vector<Model> projection;  // 生成阴影投影的模型
+    std::vector<PBRModel> geometry, transparent; // 不透明物体，和透明物体
 
     void init() {
         for(unsigned int i = 0; i < geometryPath.size(); i++) {
-            fs::path modelPath = global::resolvePath(geometryPath[i]);
+            auto modelPath = global::resolvePath(geometryPath[i]);
+            auto model = PBRModel(modelPath.c_str());
 
-            geometry.push_back(PBRModel(modelPath.c_str()));
-            geometry[i].setup(skybox.getCubemap());
-            projection.push_back(geometry[i]);
+            model.setup();
+            geometry.push_back(model);
+            projection.push_back(model);
         }
 
         for(unsigned int i = 0; i < transparentPath.size(); i++) {
-            fs::path modelPath = global::resolvePath(transparentPath[i]);
+            auto modelPath = global::resolvePath(transparentPath[i]);
+            auto model = PBRModel(modelPath.c_str());
 
-            transparent.push_back(PBRModel(modelPath.c_str()));
-            transparent[i].setup(skybox.getCubemap());
+            model.setup();
+            transparent.push_back(model);
         }
     }
 }
@@ -82,33 +98,35 @@ scene::Demo::Demo() {
 
     init();
     skybox.init();
-    PBRModel::init(light);
     model::init();
+    PBRModel::init(skybox.getCubemap(), light);
 
-    shadow.setPorps(light.direction, vec3(0.0f, 1.0f, 0.0f), 2.5f);
+    mat4 M = mat4(1.0f);
+    M = rotate(M, radians(-130.0f), vec3(0.0f, 1.0f, 0.0f));
+
+    skybox.setM(M);
+
+    shadow.setPorps(vec3(8.5f, 14.3f, 20.0f), vec3(-1.5f, 10.0f, 0.0f), 11.0f, 0.001f);
 }
 
 void scene::Demo::loop() {
     glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    renderScene();
-    postProcessing();
+    renderScene(0);
+    // renderScene(demo::FBO);
+    // postProcessing();
 }
 
-void scene::Demo::renderScene() {
+void scene::Demo::renderScene(GLuint FBO, mat4 view, mat4 projection) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
 
-    mat4 view = global::camera.GetViewMatrix();
-    mat4 projection = perspective(radians(global::camera.Zoom), (float)global::SCREEN_WIDTH / (float)global::SCREEN_HEIGHT, 0.1f, 100.0f);
-
     shadow.shadowMapping(model::projection);
-    shadow.setMap();
 
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-    glClearColor(0.2f, 0.1f, 0.0f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     PBRModel::setVP(view, projection);
@@ -130,7 +148,7 @@ void scene::Demo::renderScene() {
 }
 
 void scene::Demo::postProcessing() {
-    GLuint buffer;
-    buffer = util::Bloom(colorBuffer);
-    buffer = util::Correction(buffer, true);
+    GLuint buffer = colorBuffer;
+    // buffer = util::postProcessing::Bloom(buffer);
+    util::postProcessing::Correction(buffer, true);
 }
