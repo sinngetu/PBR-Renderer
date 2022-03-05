@@ -26,7 +26,7 @@ public:
     void setup();
     void setHeightScale(float scale);
     void setLight(vec3 direction, vec3 color);
-    void setShadow(GLuint shadowMap, mat4 WorldToLight);
+    void setShadow(GLuint shadowMap, mat4 WorldToLight, float bias = 0.005);
 };
 }
 #endif

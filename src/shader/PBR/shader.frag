@@ -33,6 +33,7 @@ uniform sampler2D   brdfLUT;
 
 // Shadow
 uniform sampler2D shadowMap;
+uniform float maxBias = 0.001; // may need to try adjustment
 
 // Height Scale
 uniform float heightScale;
@@ -125,8 +126,7 @@ void main() {
 
     vec3 diffuse = kD * baseColor / PI;
 
-    const float MAX_BIAS = 0.0008; // may need to try adjustment
-    float bias = max(MAX_BIAS * 0.1 * (1.0 - dot(N, L)), MAX_BIAS);
+    float bias = max(maxBias * 0.1 * (1.0 - dot(N, L)), maxBias);
     float shadow = getShadow(i.positionLS, bias);
 
     vec3 direct = (diffuse + specular) * radiance * NdotL * (1.0 - shadow);

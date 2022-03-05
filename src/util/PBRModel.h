@@ -13,7 +13,7 @@
 
 namespace PBR {
     material::PBR mtl;
-    GLuint brdfLUT;
+    GLuint brdfLUT, irradianceMap, prefilterMap;
 }
 
 struct DirectionalLight {
@@ -24,7 +24,6 @@ struct DirectionalLight {
 class PBRModel : public Model {
 private:
     const char *path;
-    GLuint irradianceMap, prefilterMap;
     GLuint baseColorMap, metallicMap, roughnessMap, normalMap, heightMap, aoMap;
 
     void setTextures() {
@@ -41,9 +40,9 @@ private:
         glActiveTexture(GL_TEXTURE5);
         glBindTexture(GL_TEXTURE_2D, aoMap);
         glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, PBR::irradianceMap);
         glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, PBR::prefilterMap);
         glActiveTexture(GL_TEXTURE8);
         glBindTexture(GL_TEXTURE_2D, PBR::brdfLUT);
     }
@@ -62,30 +61,38 @@ public:
             meshes[i].Draw();
     }
 
-    void setup(GLuint envMap) {
+    void setup() {
         baseColorMap = global::loadTexture((std::string(path) + std::string("/BaseColor.png")).c_str());
         metallicMap = global::loadTexture((std::string(path) + std::string("/Metallic.png")).c_str());
         roughnessMap = global::loadTexture((std::string(path) + std::string("/Roughness.png")).c_str());
         normalMap = global::loadTexture((std::string(path) + std::string("/Normal.png")).c_str());
         heightMap = global::loadTexture((std::string(path) + std::string("/Height.png")).c_str());
         aoMap = global::loadTexture((std::string(path) + std::string("/AO.png")).c_str());
-
-        GLuint gaussianFilterMap = envMap;
-        for(unsigned int i = 0; i < 10; i++)
-            gaussianFilterMap = util::gaussianFilterCubemap(gaussianFilterMap);
-
-        GLuint bilateralFilterMap = util::bilateralFilterCubemap(envMap);
-        GLuint HDRMap = util::inverseToneMapping(envMap, gaussianFilterMap, bilateralFilterMap);
-
-        irradianceMap = util::generateIrradianceMap(HDRMap);
-        prefilterMap = util::generatePrefilterMap(HDRMap);
     }
 
-    static void init(DirectionalLight light, float heightScale = 1.0f) {
+    static void init(GLuint envMap, DirectionalLight light, float heightScale = 1.0f) {
         PBR::mtl.setup();
         PBR::mtl.setLight(light.direction, light.color);
         PBR::mtl.setHeightScale(heightScale);
-        PBR::brdfLUT = util::generateBRDFLUT();
+
+        auto brdfLUT_path = global::resolvePath("export/BRDF_LUT.png");
+        PBR::brdfLUT = global::loadTexture(brdfLUT_path.c_str());
+
+        std::vector<std::string> faces;
+        fs::path irradiancePaths[6] = {
+            global::resolvePath("export/irradiance_1.png"),
+            global::resolvePath("export/irradiance_2.png"),
+            global::resolvePath("export/irradiance_3.png"),
+            global::resolvePath("export/irradiance_4.png"),
+            global::resolvePath("export/irradiance_5.png"),
+            global::resolvePath("export/irradiance_6.png"),
+        };
+
+        for(unsigned int i = 0; i < 6; i++)
+            faces.push_back(irradiancePaths[i].string());
+
+        PBR::irradianceMap = global::loadCubemap(faces);
+        PBR::prefilterMap = util::convolution::generatePrefilterMap(envMap);
     }
 
     static void setVP(glm::mat4 view, glm::mat4 projection) {
@@ -97,7 +104,7 @@ public:
     }
 
     static void setShadow(Shadow &shadow) {
-        PBR::mtl.setShadow(shadow.getMap(), shadow.getWorldToLight());
+        PBR::mtl.setShadow(shadow.getMap(), shadow.getWorldToLight(), shadow.getBias());
     }
 };
 #endif

@@ -44,9 +44,10 @@ void PBR::setLight(vec3 direction, vec3 color) {
     shader->setVec3("light.color", color);
 }
 
-void PBR::setShadow(GLuint shadowMap, mat4 WorldToLight) {
+void PBR::setShadow(GLuint shadowMap, mat4 WorldToLight, float bias) {
     use();
     glActiveTexture(GL_TEXTURE9);
     glBindTexture(GL_TEXTURE_2D, shadowMap);
     shader->setMat4("WorldToLight", WorldToLight);
+    shader->setFloat("maxBias", bias);
 }

@@ -15,13 +15,13 @@ namespace global {
 // window
 GLFWwindow* window;
 
-unsigned int SCREEN_WIDTH = 800;
-unsigned int SCREEN_HEIGHT = 600;
-unsigned int SHADOW_WIDTH = 1024;
-unsigned int SHADOW_HEIGHT = 1024;
+unsigned int SCREEN_WIDTH = 1024;
+unsigned int SCREEN_HEIGHT = 768;
+unsigned int SHADOW_WIDTH = 2048;
+unsigned int SHADOW_HEIGHT = 2048;
 
 // camera
-Camera camera(vec3(1.0f, 0.5f, 4.0f));
+Camera camera(vec3(-4.0f, 11.0f, 4.5f));
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
 bool firstMouse = true, isInit = false;
@@ -68,7 +68,7 @@ void onScroll(GLFWwindow* window, double xoffset, double yoffset) {
     camera.ProcessMouseScroll(yoffset);
 }
 
-void framebufferSizeCallback(GLFWwindow *window, int width, int height) {
+void onFramebufferSizeCallback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
@@ -101,7 +101,7 @@ bool init() {
     }
 
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+    glfwSetFramebufferSizeCallback(window, onFramebufferSizeCallback);
     glfwSetCursorPosCallback(window, onMouseMove);
     glfwSetScrollCallback(window, onScroll);
 

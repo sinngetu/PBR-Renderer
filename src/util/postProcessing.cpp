@@ -29,7 +29,7 @@ namespace util::postProcessing::bloom {
  * @param threshold 泛光部分的亮度阈值
  * @return 处理后的图片
  */
-GLuint util::Bloom(GLuint &image, float threshold) {
+GLuint util::postProcessing::Bloom(GLuint &image, float threshold) {
     if (bloom::FBO[0] == 0) {
         glGenFramebuffers(2, bloom::FBO);
         glGenTextures(2, bloom::colorBuffers);
@@ -93,9 +93,10 @@ namespace util::postProcessing::correction {
  * @param toScreen    是否直接输出到屏幕，即 BindFramebuffer 为 0
  * @param toneMapping 是否需要色调映射
  * @param exposure    色调映射的曝光度
+ * @param FBO         渲染使用的 framebuffer，优先级低于 toScreen
  * @return 处理后的图片
  */
-GLuint util::Correction(GLuint &image, bool toScreen, bool toneMapping, float exposure) {
+GLuint util::postProcessing::Correction(GLuint &image, bool toScreen, bool toneMapping, float exposure, GLuint FBO) {
     if (correction::FBO == 0) {
         glGenFramebuffers(1, &correction::FBO);
         glGenTextures(1, &correction::colorBuffer);
@@ -115,8 +116,10 @@ GLuint util::Correction(GLuint &image, bool toScreen, bool toneMapping, float ex
             std::cout << "util::postProcessing::Correction: Framebuffer not complete!" << std::endl;
     }
 
+    FBO = FBO == 0 ? correction::FBO : FBO;
+
     if (toScreen) glDisable(GL_DEPTH_TEST);
-    glBindFramebuffer(GL_FRAMEBUFFER, toScreen ? 0 : correction::FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, toScreen ? 0 : FBO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, image);
     correction::shader.use();

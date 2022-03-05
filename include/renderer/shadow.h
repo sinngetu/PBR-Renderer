@@ -13,10 +13,11 @@ class Shadow {
 private:
     GLuint depthMap, depthMapFBO;
     GLuint shader = 0;
+    float bias = 0.0;
     unsigned int textureIndex;
     glm::mat4 WorldToLight;
-    glm::vec3 direction;
-    glm::vec3 offset;
+    glm::vec3 eye;
+    glm::vec3 center;
     GLfloat halfWidth;
     GLfloat near;
     GLfloat far;
@@ -85,19 +86,20 @@ private:
 public:
     ~Shadow() { glDeleteProgram(shader); }
 
-    void setPorps(glm::vec3 direction, glm::vec3 offset = glm::vec3(0.0f), GLfloat halfWidth = 10.0f, GLfloat near = 0.1f, GLfloat far = 100.0f) {
+    void setPorps(glm::vec3 eye, glm::vec3 center = glm::vec3(0.0f), GLfloat halfWidth = 10.0f, float bias = 0.0, GLfloat near = 0.1f, GLfloat far = 100.0f) {
         if(shader == 0) init();
 
-        this->direction = direction;
-        this->offset = offset;
+        this->eye = eye;
+        this->center = center;
         this->halfWidth = halfWidth;
+        this->bias = bias;
         this->near = near;
         this->far = far;
     }
 
     void shadowMapping(std::vector<Model> models) {
         glm::mat4 projection = glm::ortho(-halfWidth, halfWidth, -halfWidth, halfWidth, near, far);
-        glm::mat4 view = glm::lookAt(direction + offset, offset, glm::vec3(0.0, 1.0, 0.0));
+        glm::mat4 view = glm::lookAt(eye, center, glm::vec3(0.0, 1.0, 0.0));
         WorldToLight = projection * view;
 
         glUseProgram(shader);
@@ -107,6 +109,7 @@ public:
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
 
         for(unsigned int i = 0; i < models.size(); i++) {
             glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(models[i].getM()));
@@ -116,6 +119,7 @@ public:
         // reset
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, global::SCREEN_WIDTH, global::SCREEN_HEIGHT);
+        glEnable(GL_CULL_FACE);
     }
 
     void setMap() {
@@ -125,6 +129,10 @@ public:
 
     inline GLuint getMap() {
         return depthMap;
+    }
+
+    inline float getBias() {
+        return bias;
     }
 
     inline glm::mat4 getWorldToLight() {

@@ -9,11 +9,16 @@ class Skybox {
 private:
     GLuint shader = 0, cubemap = 0;
     const char *path;
+    glm::mat4 model = glm::mat4(1.0f);
 
 public:
     Skybox() {}
     Skybox(GLuint cubemap) { setCubemap(cubemap); }
     Skybox(const char *skybox) { path = skybox; }
+
+    inline void setM(glm::mat4 model) {
+        this->model = model;
+    }
 
     inline void setCubemap(GLuint cubemap) {
         this->cubemap = cubemap;
@@ -33,11 +38,12 @@ public:
 
             "out vec3 uv;\n"
 
+            "uniform mat4 model;\n"
             "uniform mat4 view;\n"
             "uniform mat4 projection;\n"
 
             "void main() {\n"
-            "    vec4 positionCS = projection * view * vec4(positionOS, 1.0);\n"
+            "    vec4 positionCS = projection * view * model * vec4(positionOS, 1.0);\n"
 
             "    uv = positionOS;\n"
             "    gl_Position = positionCS.xyww;  // make sure the depth value is 1.0\n"
@@ -85,6 +91,7 @@ public:
 
         glUseProgram(shader);
         glUniform1i(glGetUniformLocation(shader, "skybox"), 0);
+        glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 

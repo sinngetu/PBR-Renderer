@@ -34,12 +34,14 @@ namespace util::convolution::irradiance {
  * 生成辐照度贴图
  * @param cubemap    环境贴图
  * @param resolution 生成的立方体贴图的每一面的分辨率
+ * @param FBO        绑定渲染的 framebuffer，默认为函数内自生成
  * @return 辐照度贴图
  */
-GLuint util::generateIrradianceMap(GLuint &cubemap, unsigned int resolution) {
-    GLuint FBO, irradianceMap;
+GLuint util::convolution::generateIrradianceMap(GLuint &cubemap, unsigned int resolution, GLuint FBO) {
+    GLuint irradianceMap;
+    bool genFBO = FBO == 0;
 
-    glGenFramebuffers(1, &FBO);
+    if (genFBO) glGenFramebuffers(1, &FBO);
     glGenTextures(1, &irradianceMap);
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
     glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
@@ -70,7 +72,7 @@ GLuint util::generateIrradianceMap(GLuint &cubemap, unsigned int resolution) {
 
     glViewport(0, 0, global::SCREEN_WIDTH, global::SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDeleteFramebuffers(1, &FBO);
+    if (genFBO) glDeleteFramebuffers(1, &FBO);
 
     return irradianceMap;
 }
@@ -87,7 +89,7 @@ namespace util::convolution::prefilter {
  * @param resolution 生成的立方体贴图的每一面的分辨率
  * @return 预过滤贴图
  */
-GLuint util::generatePrefilterMap(GLuint &cubemap, unsigned int resolution) {
+GLuint util::convolution::generatePrefilterMap(GLuint &cubemap, unsigned int resolution) {
     GLuint FBO, prefilterMap;
 
     glGenFramebuffers(1, &FBO);
@@ -146,15 +148,17 @@ namespace util::convolution::brdf {
 /**
  * BRDF积分的 Look-Up Table 贴图生成
  * @param resolution 生成的贴图分辨率
+ * @param FBO        绑定渲染的 framebuffer，默认为函数内自生成
  * @return BRDF LUT 贴图
  */
-GLuint util::generateBRDFLUT(unsigned int resolution) {
-    unsigned int LUT, FBO;
+GLuint util::convolution::generateBRDFLUT(unsigned int resolution, GLuint FBO) {
+    GLuint LUT;
+    bool genFBO = FBO == 0;
 
+    if (genFBO) glGenFramebuffers(1, &FBO);
     glGenTextures(1, &LUT);
-    glGenFramebuffers(1, &FBO);
-    glBindTexture(GL_TEXTURE_2D, LUT);
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    glBindTexture(GL_TEXTURE_2D, LUT);
 
     // use GL_RG16F to pre-allocate enough memory
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, resolution, resolution, 0, GL_RG, GL_FLOAT, 0);
@@ -163,7 +167,6 @@ GLuint util::generateBRDFLUT(unsigned int resolution) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, LUT, 0);
 
     glViewport(0, 0, resolution, resolution);
@@ -174,7 +177,7 @@ GLuint util::generateBRDFLUT(unsigned int resolution) {
 
     glViewport(0, 0, global::SCREEN_WIDTH, global::SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDeleteFramebuffers(1, &FBO);
+    if (genFBO) glDeleteFramebuffers(1, &FBO);
 
     return LUT;
 }
@@ -194,7 +197,7 @@ namespace util::convolution::bilateral_filter {
  * @param height 生成的贴图高度分辨率
  * @return 通过滤波器后生成的贴图
  */
-GLuint util::bilateralFilter(GLuint &image, unsigned int width, unsigned int height) {
+GLuint util::convolution::bilateralFilter(GLuint &image, unsigned int width, unsigned int height) {
     GLuint FBO, filterMap;
 
     glGenFramebuffers(1, &FBO);
@@ -233,7 +236,7 @@ GLuint util::bilateralFilter(GLuint &image, unsigned int width, unsigned int hei
  * @param resolution 生成的立方体贴图的每一面的分辨率
  * @return 通过滤波器后生成的立方体贴图
  */
-GLuint util::bilateralFilterCubemap(GLuint &cubemap, unsigned int resolution) {
+GLuint util::convolution::bilateralFilterCubemap(GLuint &cubemap, unsigned int resolution) {
     GLuint FBO, filterMap;
 
     glGenFramebuffers(1, &FBO);
@@ -287,7 +290,7 @@ namespace util::convolution::gaussian_filter {
  * @param height 生成的贴图高度分辨率
  * @return 通过滤波器后生成的贴图
  */
-GLuint gaussianFilter(GLuint &image, unsigned int width = global::SCREEN_WIDTH, unsigned int height = global::SCREEN_HEIGHT) {
+GLuint util::convolution::gaussianFilter(GLuint &image, unsigned int width, unsigned int height) {
     GLuint FBO, filterMap;
 
     glGenFramebuffers(1, &FBO);
@@ -327,7 +330,7 @@ GLuint gaussianFilter(GLuint &image, unsigned int width = global::SCREEN_WIDTH, 
  * @param radius     用于计算高斯滤波覆盖的区域半径，计算方式：0.5π / radius
  * @return 通过滤波器后生成的立方体贴图
  */
-GLuint util::gaussianFilterCubemap(GLuint &cubemap, unsigned int resolution, unsigned int radius) {
+GLuint util::convolution::gaussianFilterCubemap(GLuint &cubemap, unsigned int resolution, unsigned int radius) {
     GLuint FBO, filterMap;
 
     glGenFramebuffers(1, &FBO);
@@ -381,7 +384,7 @@ namespace util::convolution::inverse_tone_mapping {
  * @param resolution  生成的立方体贴图的每一面的分辨率
  * @return 生成的HDR贴图
  */
-GLuint util::inverseToneMapping(GLuint &LDR, GLuint &sigma, GLuint &surrounding, float maxValue, unsigned int resolution) {
+GLuint util::convolution::inverseToneMapping(GLuint &LDR, GLuint &sigma, GLuint &surrounding, float maxValue, unsigned int resolution) {
     GLuint FBO, HDR;
 
     glGenFramebuffers(1, &FBO);
