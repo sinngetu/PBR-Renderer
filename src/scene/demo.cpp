@@ -57,7 +57,7 @@ namespace scene::demo::model {
         "assets/PBR/bookshelf_2",
         "assets/PBR/chandelier",
         "assets/PBR/clock",
-        // "assets/PBR/pot_plant",
+        "assets/PBR/pot_plant",
         "assets/PBR/room",
         "assets/PBR/sofa",
         "assets/PBR/table",
