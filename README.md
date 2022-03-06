@@ -4,9 +4,25 @@
 ## 启动
 首先，你需要下载并编译[glad](https://glad.dav1d.de/)、[glfw](https://www.glfw.org/)、[assimp](https://github.com/assimp/assimp)等依赖库
 
-在得到相应的动态链接库文件后(`.so`、`.dylib`、`.dll`等文件)，将其移动至`lib`文件夹下，随后调整`CMakeLists.txt`文件中相应的链接库名称即可
+在得到相应的动态链接库文件后(`.so`、`.dylib`、`.dll`等文件)，将其移动至`lib`文件夹下，随后调整`CMakeLists.txt`文件中相应的链接库名称
 
-> 在项目编译完成后，请确保在项目根目录下启动，这是由于根路径设置使用的是`std::filesystem::current_path()`，与当前终端的pwd一致
+然后即可开始编译：
+``` bash
+mkdir build && cd build
+cmake ..
+make
+```
+
+运行并得到以下的结果
+``` bash
+cd ..
+./build/Renderer
+```
+
+![example 1](https://github.com/sinngetu/PBR-Renderer/blob/main/export/example_1.png)
+![example 2](https://github.com/sinngetu/PBR-Renderer/blob/main/export/example_2.png)
+
+> 在项目编译完成后，请确保在项目根目录下启动，这是由于根路径设置使用的是`std::filesystem::current_path()`，因此与当前终端的`pwd`一致
 
 ## 目录结构
 ```
